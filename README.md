@@ -106,7 +106,7 @@ Un projet **dédié** a été créé ; le projet existant `Gestion Optima` (kolo
 | Projet | `nimba-ai` — `prj_DDNnqcyLum6KJ5CzoFeaHTxzWt0p` |
 | Équipe | `Sdiawara` — `team_rNftP3gJ7YJxA9TvfO5OVP1G` |
 | URL de production | `https://nimba-ai-sdiawara.vercel.app` |
-| Déploiement promu | `dpl_5xP1rw7MmK2CKL5jZ4PRZHRkNUwN` (commit `d7c8923`, branche `arena/f0ba93da-nimba-ai`, `READY` / `PROMOTED`) |
+| Déploiement promu | `dpl_H2pRnktC9HFnHZNdf52bMym3sLLB` (commit `6ccae81`, branche `arena/f0ba93da-nimba-ai`, `READY` / `PROMOTED`) |
 | Framework / Node | Next.js 15 · Node 26.x |
 | Cible | `production`, région `iad1` |
 

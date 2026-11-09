@@ -107,7 +107,7 @@ Un projet **dédié** a été créé ; le projet existant `Gestion Optima` (kolo
 | Équipe | `Sdiawara` — `team_rNftP3gJ7YJxA9TvfO5OVP1G` |
 | URL Vercel (privée SSO) | `https://nimba-ai-sdiawara.vercel.app` |
 | Domaine personnalisé | `https://nimba.optima-works.gn` — attaché et vérifié côté Vercel, **DNS à publier** |
-| Déploiement promu | `dpl_EFi42nTY9ficxQJMXmSnDVg5dFn9` (commit `ee7a2c3`, branche `arena/f0ba93da-nimba-ai`, `READY` / `PROMOTED`, alias `nimba.optima-works.gn`) |
+| Déploiement promu | `dpl_FDJ2qEGx8JFJ5wmVizCjYQgjcLVu` (commit `3e2568d` — devise GNF / $, branche `arena/f0ba93da-nimba-ai`, `READY` / `PROMOTED`, alias `nimba.optima-works.gn`) |
 | Framework / Node | Next.js 15 · Node 26.x |
 | Cible | `production`, région `iad1` |
 | `NEXT_PUBLIC_APP_URL` | `https://nimba.optima-works.gn` |

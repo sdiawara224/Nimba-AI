@@ -153,7 +153,8 @@ Déploiements successifs de la session :
 | `dpl_AkYFvy4bEYnZ5gTEy51rASqwbsxh` | READY / PROMOTED |
 | `dpl_5xP1rw7MmK2CKL5jZ4PRZHRkNUwN` | READY / PROMOTED |
 | `dpl_H2pRnktC9HFnHZNdf52bMym3sLLB` | READY / PROMOTED |
-| `dpl_EFi42nTY9ficxQJMXmSnDVg5dFn9` | READY / PROMOTED (actuel) |
+| `dpl_EFi42nTY9ficxQJMXmSnDVg5dFn9` | READY / PROMOTED |
+| `dpl_FDJ2qEGx8JFJ5wmVizCjYQgjcLVu` | READY / PROMOTED (actuel, commit `3e2568d`, devise GNF / $, alias `nimba.optima-works.gn`) |
 
 ## 8. Supabase / domaine / limites
 
@@ -198,4 +199,4 @@ Choix utilisateur : **GNF + $ affichés ensemble**, FCFA supprimé, conversion a
 | HTML `/checkout/simulate?...&amount=225000` | `formatPrice` rendu côté serveur en `0 GNF · 0,00 $` puis hydraté côté client avec le montant de l'URL ; `FCFA=0` |
 | Supabase | migration `20261109222655 nimba_currency_gnf_usd` appliquée ; `payments.amount_gnf`, `confirm_payment(p_amount_gnf)`, `service_role` seul autorisé |
 
-**Limites** : taux et montants restent indicatifs ; aucun paiement réel n'est branché ; la nouvelle version n'a pas encore été déployée sur Vercel ni testée sur le domaine public (CNAME toujours à publier). Le script `check:currency` et le smoke E2E sont locaux, pas des tests navigateur.
+**Limites** : taux et montants restent indicatifs ; aucun paiement réel n'est branché. Le commit `3e2568d` a été déployé sur Vercel (`dpl_FDJ2qEGx8JFJ5wmVizCjYQgjcLVu`, `READY` / `PROMOTED`, alias `nimba.optima-works.gn`), mais `get_domain_config` reste `misconfigured=true` (`cnames=[]`, `aValues=[]`) et `GET https://nimba.optima-works.gn/api/health` échoue encore : **aucun test HTTP public ni parcours GoTrue déployé n'a été validé**. Le script `check:currency` et le smoke E2E sont locaux, pas des tests navigateur.

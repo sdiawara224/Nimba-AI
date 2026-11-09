@@ -1,3 +1,5 @@
+# NOTE : relevé HISTORIQUE avant le passage en 100 % local. Voir logs/vercel-local.log pour l'état actuel (domaine détaché, URL localhost, aucun déploiement).
+
 # Vercel — variables d'environnement et domaine (relevé connecteur)
 
 ## Projet

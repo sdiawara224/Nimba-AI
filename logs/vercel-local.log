@@ -1,0 +1,74 @@
+# Nimba — passage en exécution 100 % locale (Vercel dev --local)
+# 2026-11-09 — aucune valeur secrète reproduite ici.
+
+## Commande / démarrage
+$ npm run dev:vercel
+> vercel dev --local --listen 0.0.0.0:3000 --yes
+
+Vercel CLI 65.14.0 (native)
+WARNING! Running dev server in local mode without a project setup:
+  - Environment variables will not be pulled from Vercel
+  - Project settings are defined by local configuration
+
+> Running Dev Command "next dev --port $PORT"
+> Local resources:
+  Vercel Queues    http://127.0.0.1:4782
+  Vercel Schedules http://127.0.0.1:4784
+  Runtime Cache    http://127.0.0.1:4783/v1/suspense-cache/
+> Ready! Available at http://localhost:3000
+
+Next.js 15.5.29
+- Local:       http://localhost:3000
+- Network:     http://0.0.0.0:3000 (via --listen)
+- Environments: .env.development.local
+✓ Ready in ~1.4s
+
+Ports en écoute : 3000 (0.0.0.0), 4782, 4783, 4784.
+Aucun `vercel link`, aucun `vercel.json`, aucun `create_deployment`.
+
+## Santé et pages (Host simulé : 3000-abc123.e2b.app)
+GET /api/health -> 200
+  {"status":"ok","mode":"demo","supabase":{"configured":false,"missing":[]},
+   "anthropic":{"enabled":false},"payments":{"configured":true,"adapterRequired":false}}
+
+GET /                        -> 200
+GET /login                   -> 200
+GET /studio                  -> 200
+GET /admin                   -> 200
+GET /cgu                     -> 200
+GET /confidentialite         -> 200
+GET /checkout/simulate       -> 200
+GET /api/health              -> 200
+GET /api/session             -> 200
+Tarifs rendus : "75 000 GNF · 8,67 $", "225 000 GNF · 26,01 $", "525 000 GNF · 60,69 $"
+
+## E2E (voir logs/e2e-vercel-local.log)
+13 étapes OK, zéro cookie, Bearer seul :
+  test-admin 200 / session isAdmin=True / admin 200
+  stats={'users':1,'projects':0,'credits':999,'paidPayments':0,'revenueGnf':0,'revenueUsd':0}
+  site 13528 caractères, vidéo 5 scènes / 12208 caractères
+  checkout createur 200 ; webhook applied=True puis False
+  logout 200, jeton révoqué -> session None
+  signup 3 crédits, /api/admin normal -> 403
+
+## Builds locaux
+npm run typecheck -> exit 0
+npm run build     -> exit 0, 17 routes (9 statiques + 8 dynamiques), voir logs/build-vercel-local.log
+
+## Compte Vercel — mise en cohérence « sans domaine »
+list_project_domains (avant)  : nimba.optima-works.gn, nimba-ai-ecru.vercel.app
+remove_project_domain          : success=true, "Domain 'nimba.optima-works.gn' removed from project."
+list_project_domains (après)  : nimba-ai-ecru.vercel.app uniquement
+get_domain("nimba.optima-works.gn") -> apex optima-works.gn verified=true (reste dans le compte, sans alias)
+update_env_var aUVWXNxrLQTRsct7 : NEXT_PUBLIC_APP_URL = http://localhost:3000 (plain, tous targets)
+Aucun nouveau déploiement créé. Anciens déploiements conservés dans l'historique, SSO *.vercel.app.
+
+## Supabase Auth — mise en cohérence locale
+update_auth_config jyyqgymkxfqirgzeyjcw :
+  site_url       = http://localhost:3000
+  uri_allow_list = http://localhost:3000/**,http://127.0.0.1:3000/**
+  (jwt_exp 3600, mailer_autoconfirm true, rotation refresh inchangée)
+
+## Non fait, volontairement
+Aucun CNAME/DNS publié, aucun domaine rattaché, aucun accès public ouvert,
+aucun test GoTrue depuis un hôte externe, aucun déploiement de production.

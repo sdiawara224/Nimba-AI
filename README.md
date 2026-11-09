@@ -6,17 +6,22 @@ SaaS de génération de **sites web et de montages vidéo** par IA. Interface ty
 
 **Nimba fait 2 choses** : l'atelier **Site** et l'atelier **Vidéo**, dans le même studio, avec le même solde de crédits et le même historique.
 
+> **Mode de travail actuel : 100 % local.** Le projet tourne avec `vercel dev --local` sur `http://localhost:3000` : **aucun déploiement, aucun domaine public, aucun CNAME/DNS à publier**. Voir [Exécution locale avec Vercel](#exécution-locale-avec-vercel).
+
 ## Stack
 
 Next.js 15 (App Router, React 19, TypeScript strict) · Supabase (auth, base, crédits atomiques) · API Anthropic pour la génération · paiement via un adaptateur à brancher.
 
-## Démarrage
+## Démarrage — Vercel en local (sans publication)
 
 ```bash
 npm install
-cp .env.example .env.local
-npm run dev          # http://localhost:3000
+npm run dev:vercel   # http://localhost:3000
 ```
+
+`npm run dev:vercel` lance l'émulation Vercel **sans liaison à un projet, sans déploiement et sans domaine** : `vercel dev --local --listen 0.0.0.0:3000 --yes`. Le CLI démarre `next dev` et expose aussi les ressources locales Vercel (Queues `:4782`, Runtime Cache `:4783`, Schedules `:4784`). Le serveur écoute sur `0.0.0.0` pour être visible dans l'aperçu intégré. `npm run dev` (Next.js direct) reste disponible sur le même port.
+
+Aucun `vercel link`, aucun `vercel deploy` et aucun `vercel.json` ne sont nécessaires. Le compte admin de test en un clic est optionnel : il lit `NIMBA_TEST_ADMIN_EMAIL` / `NIMBA_TEST_ADMIN_PASSWORD` depuis `.env.development.local` (fichier ignoré par Git). Sans lui, l'inscription libre du mode démo fonctionne toujours et donne 3 crédits.
 
 **Aucune clé n'est nécessaire pour essayer** : sans variables Supabase, l'application démarre automatiquement en **mode démo** :
 
@@ -25,7 +30,7 @@ npm run dev          # http://localhost:3000
 - achat de crédits simulé de bout en bout (`/api/checkout` → page de confirmation → `/api/webhook`) ;
 - badge « mode démo » affiché dans l'interface.
 
-Pour la production, un projet Supabase **dédié** est déjà créé et configuré : voir [Configuration Supabase de production](#configuration-supabase-de-production). `NIMBA_MODE=production` désactive tout repli vers le stockage en mémoire.
+Pour la production, un projet Supabase **dédié** est déjà créé et configuré : voir [Configuration Supabase de production](#configuration-supabase-de-production). `NIMBA_MODE=production` désactive tout repli vers le stockage en mémoire. **Il n'est pas utilisé dans le mode local actuel.**
 
 ### Variables d'environnement
 
@@ -76,12 +81,12 @@ Un projet **dédié** a été créé ; le projet existant `Gestion Optima` (kolo
 | `mailer_autoconfirm` | `true` — aucun SMTP n'est configuré ; **à repasser à `false`** après branchement d'un SMTP et activation de la confirmation d'e-mail |
 | `jwt_exp` | `3600` s |
 | rotation du refresh token | activée, intervalle de réutilisation `10` s |
-| `site_url` | `https://nimba.optima-works.gn` (domaine personnalisé choisi) |
-| `uri_allow_list` | `https://nimba.optima-works.gn/**,https://nimba-ai-sdiawara.vercel.app/**,https://nimba-ai-git-arena-f0ba93da-nimba-ai-sdiawara.vercel.app/**,https://*.vercel.app/**,http://localhost:3000/**` |
+| `site_url` | `http://localhost:3000` (aligné sur le mode local) |
+| `uri_allow_list` | `http://localhost:3000/**,http://127.0.0.1:3000/**` |
 
 ### Variables de l'application
 
-`.env.production.local` (ignoré par Git, chargé par `next build` / `next start`, **pas** par `next dev`) contient `NIMBA_MODE=production`, l'URL du projet, les deux clés et les emplacements `ANTHROPIC_API_KEY` / `PAYMENT_WEBHOOK_SECRET`. Ces variables sont **déjà déclarées sur le projet Vercel** (voir [Déploiement Vercel](#déploiement-vercel)) : `NIMBA_MODE`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL` (= `https://nimba.optima-works.gn`), `ANTHROPIC_MODEL`, `ANTHROPIC_MAX_TOKENS`. Il reste à renseigner `ANTHROPIC_API_KEY`, `PAYMENT_WEBHOOK_SECRET` et les clés du prestataire de paiement.
+`.env.production.local` (ignoré par Git, chargé par `next build` / `next start`, **pas** par `next dev`) contient `NIMBA_MODE=production`, l'URL du projet, les deux clés et les emplacements `ANTHROPIC_API_KEY` / `PAYMENT_WEBHOOK_SECRET`. **Elle n'est pas utilisée dans le mode local actuel.** Les mêmes variables restent déclarées sur le projet Vercel (voir [Exécution locale avec Vercel](#exécution-locale-avec-vercel)), mais `NEXT_PUBLIC_APP_URL` y a été remise à `http://localhost:3000` et **aucun nouveau déploiement n'est effectué**. Les clés ne sont jamais dans Git. Il reste à renseigner `ANTHROPIC_API_KEY`, `PAYMENT_WEBHOOK_SECRET` et les clés du prestataire de paiement le jour où une mise en ligne serait décidée.
 
 > Les clés renseignées sont les clés JWT « legacy » `anon` / `service_role` fournies à la création du projet, compatibles avec la version installée de `@supabase/supabase-js`. La clé `sb_secret_…` est masquée par l'API de gestion : la récupérer dans le dashboard pour l'utiliser à la place.
 
@@ -96,35 +101,45 @@ Un projet **dédié** a été créé ; le projet existant `Gestion Optima` (kolo
 
 - **Paiement réel** : en production, aucun adaptateur n'est enregistré et `/api/checkout` renvoie **HTTP 501 `PAYMENT_NOT_CONFIGURED`**. Il faut implémenter `createPayment` / `verifyWebhook` dans `src/lib/payments.ts` (Mobile Money, Wave, Orange Money, cartes…), vérifier la signature du webhook avec `PAYMENT_WEBHOOK_SECRET` et renvoyer la référence créée par `/api/checkout`. Tant que ce n'est pas fait, la recharge est indisponible en production — les 3 crédits offerts fonctionnent.
 - **`ANTHROPIC_API_KEY`** : absente → générateur local déterministe, fonctionnel mais sans IA.
-- **Accès public** : le projet Vercel applique par défaut la protection « Vercel Authentication » (`ssoProtection: all_except_custom_domains`). L'URL `*.vercel.app` reste donc privée, mais le domaine personnalisé `nimba.optima-works.gn` a été attaché au projet : les domaines personnalisés ne sont pas soumis à cette protection. **Il reste à publier l'enregistrement DNS CNAME** indiqué par Vercel (voir [Déploiement Vercel](#déploiement-vercel)) pour que ce domaine résolve. Le connecteur Vercel ne permet ni de désactiver le SSO ni d'écrire les enregistrements DNS.
-- **Limite de ce sandbox** : l'environnement de développement ne peut pas joindre `*.supabase.co`, ni l'URL Vercel protégée. L'inscription/connexion réelles n'ont donc pas pu être exercées depuis l'aperçu local ; elles ont été validées au niveau SQL via le connecteur Supabase. L'aperçu (`next dev`) reste volontairement en **mode démo**, `.env.production.local` n'étant pas chargé en développement. Premier contrôle après ouverture du site : `GET /api/health` doit renvoyer `{"status":"ok","mode":"production"}`, puis tester inscription → génération → historique.
+- **Publication** : **aucune, conformément à la demande.** `nimba.optima-works.gn` a été **détaché du projet Vercel** (il reste simplement vérifié dans le compte). Aucun CNAME, aucun enregistrement DNS et aucun domaine personnalisé ne sont à publier. Le projet Vercel `nimba-ai` et ses anciens déploiements restent dans l'historique du compte, mais plus rien n'est déployé ni exposé : le travail se fait uniquement via `npm run dev:vercel`.
+- **Limite de ce sandbox** : l'environnement de développement ne peut pas joindre `*.supabase.co`. L'inscription/connexion GoTrue réelles n'ont donc pas pu être exercées depuis l'aperçu local ; elles ont été validées au niveau SQL via le connecteur Supabase. L'aperçu (`vercel dev --local`) reste volontairement en **mode démo**, `.env.production.local` n'étant pas chargé en développement.
 
-## Déploiement Vercel
+## Exécution locale avec Vercel (sans publication)
+
+**Choix actuel** : tout le projet tourne en local via l'émulation Vercel. Aucun déploiement n'est créé, aucun domaine n'est publié, aucun enregistrement DNS n'est à modifier.
 
 | Élément | Valeur |
 | --- | --- |
-| Projet | `nimba-ai` — `prj_DDNnqcyLum6KJ5CzoFeaHTxzWt0p` |
-| Équipe | `Sdiawara` — `team_rNftP3gJ7YJxA9TvfO5OVP1G` |
-| URL Vercel (privée SSO) | `https://nimba-ai-sdiawara.vercel.app` |
-| Domaine personnalisé | `https://nimba.optima-works.gn` — attaché et vérifié côté Vercel, **DNS à publier** |
-| Déploiement promu | `dpl_FDJ2qEGx8JFJ5wmVizCjYQgjcLVu` (commit `3e2568d` — devise GNF / $, branche `arena/f0ba93da-nimba-ai`, `READY` / `PROMOTED`, alias `nimba.optima-works.gn`) |
-| Framework / Node | Next.js 15 · Node 26.x |
-| Cible | `production`, région `iad1` |
-| `NEXT_PUBLIC_APP_URL` | `https://nimba.optima-works.gn` |
+| Commande | `npm run dev:vercel` → `vercel dev --local --listen 0.0.0.0:3000 --yes` |
+| URL locale | `http://localhost:3000` (serveur lié sur `0.0.0.0:3000` pour l'aperçu intégré) |
+| Ressources Vercel locales | Queues `:4782`, Runtime Cache `:4783`, Schedules `:4784` |
+| Variables d'environnement | fichiers `.env.*.local` uniquement ; **aucune** n'est tirée du compte Vercel |
+| Domaines du projet | **aucun domaine personnalisé** (`nimba.optima-works.gn` détaché) |
+| Projet Vercel | conservé pour information : `nimba-ai` — `prj_DDNnqcyLum6KJ5CzoFeaHTxzWt0p`, équipe `team_rNftP3gJ7YJxA9TvfO5OVP1G` |
+| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` (également remis à cette valeur sur le projet Vercel) |
 
-Le domaine `optima-works.gn` est déjà vérifié dans le compte Vercel. `get_domain_config` signale cependant `misconfigured: true` : le sous-domaine doit être publié chez le gestionnaire DNS actuel (`fork.sth.dnsnode.net`, `ns-pch.gn`, `ns1.gn`, `ns-gn.afrinic.net`) avec l'un des CNAME recommandés par Vercel :
+`--local` démarre le CLI **sans `vercel link`** : pas d'authentification, pas de `vercel.json`, pas de récupération des variables distantes, pas de `create_deployment`. Le CLI détecte Next.js et lance `next dev --port $PORT`, ce qui reproduit en local les routes et les fonctions serverless. Le serveur écoute sur `0.0.0.0` afin d'accepter l'hôte de l'aperçu `*.e2b.app`.
 
-```text
-nimba    CNAME    d13183f263158da0.vercel-dns-017.com.
-# CNAME alternatif : cname.vercel-dns.com.
-# Si le CNAME est impossible : A vers 216.198.79.1 (ou 76.76.21.21)
-```
+### Compte Vercel / Supabase mis en cohérence avec le local
 
-Tant que cet enregistrement n'est pas propagé, `https://nimba.optima-works.gn` ne résout pas ; l'URL `*.vercel.app` reste accessible aux seuls membres connectés de l'équipe Vercel.
+- `nimba.optima-works.gn` **retiré des domaines du projet** (`remove_project_domain` → `success: true`). Il reste simplement vérifié dans le compte Vercel, sans alias ni publication.
+- Aucun CNAME à publier : `nimba → d13183f263158da0.vercel-dns-017.com.` n'est **plus** une étape du projet.
+- `NEXT_PUBLIC_APP_URL` Vercel : `https://nimba.optima-works.gn` → `http://localhost:3000`.
+- Supabase Auth : `site_url = http://localhost:3000`, `uri_allow_list = http://localhost:3000/**,http://127.0.0.1:3000/**`.
+- Les anciens déploiements (`dpl_AkYF…`, `dpl_5xP1…`, `dpl_H2p…`, `dpl_EFi…`, `dpl_FDJ2…`) restent dans l'historique Vercel derrière le SSO `*.vercel.app` ; **aucun nouveau déploiement n'est effectué** et ces URLs ne sont pas utilisées.
 
-Le dépôt GitHub `sdiawara224/Nimba-AI` est relié au projet ; la branche de la session a été commitée et poussée, puis déployée via le connecteur Vercel. `NEXT_PUBLIC_APP_URL`, `site_url` et `uri_allow_list` Supabase pointent désormais sur cette URL. Les clés sont stockées chiffrées dans les variables d'environnement Vercel, jamais dans Git.
+### Vérifications locales effectuées
 
-> **Important** : la protection Vercel SSO reste active sur `*.vercel.app` et le connecteur ne permet pas de la désactiver. Le domaine personnalisé `nimba.optima-works.gn` contourne cette protection, mais son CNAME DNS n'est pas encore publié. Aucun test HTTP public (ni GoTrue réel) n'a donc été enregistré depuis l'extérieur après le déploiement.
+| Contrôle | Résultat |
+| --- | --- |
+| `npm run dev:vercel` | `Ready! Available at http://localhost:3000`, Next.js 15.5.29, `.env.development.local` chargé |
+| `GET /api/health` | 200, `{"status":"ok","mode":"demo"}` |
+| Pages avec hôte d'aperçu `*.e2b.app` | `/`, `/login`, `/studio`, `/admin`, `/cgu`, `/confidentialite`, `/checkout/simulate`, `/api/health`, `/api/session` → 200 |
+| Smoke E2E zéro cookie (`logs/e2e-vercel-local.log`) | 13 étapes OK : admin, site, vidéo, checkout, webhook `true` puis `false`, logout/révocation, inscription, `403` utilisateur normal |
+| `npm run typecheck` / `npm run build` | 0 / 17 routes (`logs/build-vercel-local.log`) |
+| Tarifs rendus sur `/` | `75 000 GNF · 8,67 $`, `225 000 GNF · 26,01 $`, `525 000 GNF · 60,69 $` |
+
+> **Non fait, volontairement** : rattacher un domaine, publier un CNAME, déployer en production, ouvrir un accès public ou valider GoTrue depuis un hôte externe. Le connecteur Vercel ne permet de toute façon ni de désactiver le SSO ni d'écrire les DNS ; ces étapes ne sont simplement plus au programme.
 
 ## Devise et tarifs
 
@@ -232,7 +247,9 @@ TEST_ACCESS.local.md          identifiants de test (ignoré par Git, non version
 
 `profiles` (solde), `projects` (avec `kind` = `site`/`video` et `storyboard` en `jsonb`), `credit_transactions` (journal), `payments` (référence = clé d'idempotence). Le script est rejouable : les colonnes des ateliers sont ajoutées par `ADD COLUMN IF NOT EXISTS` si la base existe déjà. RLS en lecture pour l'utilisateur ; toutes les mutations de solde passent par des fonctions `SECURITY DEFINER` réservées au `service_role` : `consume_credit`, `refund_credit`, `confirm_payment` et `grant_credits` (octroi admin).
 
-## À finir avant la mise en ligne
+## À finir avant une éventuelle mise en ligne
+
+> Le mode actuel est **local et sans publication** : aucun de ces points n'est nécessaire pour travailler sur le projet. Ils restent notés pour le jour où une mise en ligne serait décidée.
 
 - **Paiement** : implémenter `createPayment` et `verifyWebhook` dans `src/lib/payments.ts` pour votre prestataire (Mobile Money / Orange Money / Wave / cartes), puis appeler `registerPaymentProvider(...)` au démarrage du serveur. **Sans cela, l'achat renvoie une erreur explicite (HTTP 501)** au lieu de créditer gratuitement. L'adaptateur doit vérifier la signature du webhook et renvoyer la référence créée par `/api/checkout`.
 - Ajuster prix et crédits dans `src/lib/plans.ts`, et remplacer le taux indicatif `1 $ ≈ 8 650 GNF` par les montants contractuels.
@@ -240,11 +257,11 @@ TEST_ACCESS.local.md          identifiants de test (ignoré par Git, non version
 - **Faire relire les pages légales par un conseil juridique** : voir les points de vigilance ci-dessous.
 - Pour un vrai export MP4, brancher un service de rendu derrière une interface du même type que `src/lib/payments.ts` ; l'architecture du storyboard est déjà prête.
 - Supprimer le compte de test et les fichiers de credentials locaux (voir ci-dessus), ou durcir `/admin` avant de le conserver.
-- Configurer un SMTP Supabase et désactiver `mailer_autoconfirm` (`site_url` / `uri_allow_list` sont déjà alignés sur l'URL Vercel).
-- Publier le CNAME `nimba → d13183f263158da0.vercel-dns-017.com.` chez le registrar, puis vérifier `GET /api/health` depuis `https://nimba.optima-works.gn`.
-- Brancher les clés Anthropic et le prestataire de paiement (voir ci-dessus), puis rejouer un parcours complet sur le domaine public.
+- Configurer un SMTP Supabase et désactiver `mailer_autoconfirm`, puis remettre `site_url` / `uri_allow_list` sur l'URL publique choisie.
+- **Si** un domaine est décidé : le rattacher au projet Vercel, publier son CNAME chez le registrar, puis vérifier `GET /api/health` depuis l'URL publique. Rien de tout cela n'est fait aujourd'hui.
+- Brancher les clés Anthropic et le prestataire de paiement (voir ci-dessus), puis rejouer un parcours complet sur l'environnement cible.
 - Activer une protection anti-abus (captcha Supabase sur l'inscription + rate limiting distribué).
-- Exécutez `npm run typecheck` et `npm run build` avant chaque déploiement.
+- Exécuter `npm run typecheck` et `npm run build` avant chaque déploiement.
 
 ## Pages légales
 
@@ -272,7 +289,8 @@ Refonte visuelle inspirée des références fournies : thème nuit GeniusCrea (m
 
 | Script | Description |
 | --- | --- |
-| `npm run dev` | Serveur de développement |
+| `npm run dev` | Next.js direct (`next dev -H 0.0.0.0`) |
+| `npm run dev:vercel` | **Recommandé** : `vercel dev --local`, émulation Vercel sans déploiement ni domaine |
 | `npm run build` | Build de production (vérifie aussi les types) |
 | `npm start` | Serveur de production |
 | `npm run typecheck` | `tsc --noEmit` seul |

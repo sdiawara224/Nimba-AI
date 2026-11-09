@@ -12,8 +12,9 @@ Collecte des logs de validation de la session. **Aucun mot de passe, JWT, clé `
 | E2E démo sans cookie | 13 étapes OK, jeton révoqué au logout | `logs/e2e-demo.log` |
 | Mode production local | `test-admin`/`demo` 403, bearer ignoré, secrets absents du bundle | `logs/prod-*.log` + relevés historiques |
 | Supabase | `ACTIVE_HEALTHY`, 2 migrations, 4 tables, 4 politiques, 6 fonctions, 2 triggers | `logs/supabase.log` |
-| Domaine | attaché + vérifié côté Vercel, **CNAME DNS encore absent** | `logs/vercel-env-dns.log` |
-| HTTP public déployé | **non validé** (SSO Vercel + DNS en attente) | voir § 8 |
+| Domaine | **détaché du projet Vercel**, aucun CNAME à publier | `logs/vercel-local.log` |
+| HTTP public déployé | **volontairement aucun** (mode 100 % local) | voir § 11 |
+| Vercel en local (`dev:vercel`) | `READY`, 9 pages 200, E2E 13 étapes OK, zéro déploiement | `logs/vercel-local.log`, § 11 |
 | Devise GNF / $ | `check:currency`, typecheck, build et E2E OK ; migration SQL appliquée | `logs/build-gnf-usd.log`, `logs/e2e-gnf-usd.log`, § 10 |
 
 ## 2. Fichiers bruts
@@ -31,6 +32,9 @@ Collecte des logs de validation de la session. **Aucun mot de passe, JWT, clé `
 | `logs/prod2.log` | Erreur historique `ENOENT prerender-manifest.json` (build écrasé par le dev, corrigé depuis) |
 | `logs/build-gnf-usd.log` | Build local après le passage en GNF / $ |
 | `logs/e2e-gnf-usd.log` | Smoke E2E après le passage en GNF / $ (zéro cookie, 22:28 UTC) |
+| `logs/e2e-vercel-local.log` | Smoke E2E sous `vercel dev --local` (zéro cookie, 22:49 UTC) |
+| `logs/build-vercel-local.log` | Build local après ajout du CLI Vercel en devDependency |
+| `logs/vercel-local.log` | Démarrage local, santé/pages, détachement du domaine, config Vercel/Supabase |
 
 ## 3. Builds locaux
 
@@ -154,25 +158,27 @@ Déploiements successifs de la session :
 | `dpl_5xP1rw7MmK2CKL5jZ4PRZHRkNUwN` | READY / PROMOTED |
 | `dpl_H2pRnktC9HFnHZNdf52bMym3sLLB` | READY / PROMOTED |
 | `dpl_EFi42nTY9ficxQJMXmSnDVg5dFn9` | READY / PROMOTED |
-| `dpl_FDJ2qEGx8JFJ5wmVizCjYQgjcLVu` | READY / PROMOTED (actuel, commit `3e2568d`, devise GNF / $, alias `nimba.optima-works.gn`) |
+| `dpl_FDJ2qEGx8JFJ5wmVizCjYQgjcLVu` | READY / PROMOTED (dernier déploiement, commit `3e2568d`, devise GNF / $, alias `nimba.optima-works.gn`) |
+
+**À partir du passage en local : aucun nouveau déploiement.** Voir § 11.
 
 ## 8. Supabase / domaine / limites
 
 Voir `logs/supabase.log` et `logs/vercel-env-dns.log` :
 
 - `auth`, `db`, `rest` : `ACTIVE_HEALTHY`.
-- `site_url = https://nimba.optima-works.gn`, allow-list inclut aussi les URLs Vercel et localhost.
+- `site_url = http://localhost:3000`, `uri_allow_list = http://localhost:3000/**,http://127.0.0.1:3000/**` (alignés sur le mode local ; voir § 11).
 - `mailer_autoconfirm = true`, SMTP non configuré, captcha désactivé.
-- `nimba.optima-works.gn` : `verified=true` côté Vercel mais `misconfigured=true` côté DNS.
-- CNAME à publier : `nimba → d13183f263158da0.vercel-dns-017.com.`
+- `nimba.optima-works.gn` : `verified=true` dans le compte Vercel, mais **retiré des domaines du projet** (aucun CNAME à publier).
+- Ancien CNAME recommandé (`nimba → d13183f263158da0.vercel-dns-017.com.`) : **abandonné**, sans objet en mode local.
 - Migration `20261109222655 nimba_currency_gnf_usd` : `payments.amount_fcfa → amount_gnf`, `confirm_payment(p_amount_fcfa → p_amount_gnf)`. Requête de contrôle : colonne `amount_gnf`, signature `confirm_payment(p_reference text, p_user_id uuid, p_credits integer, p_amount_gnf integer)`, `EXECUTE` réservé à `service_role`.
 
 **Non validé / restant** :
 
-1. `GET /api/health` depuis l'extérieur : `fetch_page` sur `https://nimba-ai-sdiawara.vercel.app/api/health` renvoie la page de login Vercel (SSO `all_except_custom_domains`) ; `https://nimba.optima-works.gn/api/health` échoue tant que le CNAME n'est pas propagé.
+1. `GET /api/health` depuis l'extérieur : **volontairement non poursuivi**. `fetch_page` sur `https://nimba-ai-sdiawara.vercel.app/api/health` renvoyait la page de login Vercel (SSO) et `https://nimba.optima-works.gn/api/health` échouait faute de CNAME ; le domaine a depuis été détaché.
 2. Aucune inscription / connexion GoTrue réelle réussie depuis l'hôte déployé (le sandbox ne joint pas `*.supabase.co` en local, et l'URL publique est bloquée).
 3. Aucune validation dans le vrai iframe Arena avec cookies tiers bloqués (pas de Chromium).
-4. Paiement réel non branché : `/api/checkout` renvoie `501 PAYMENT_NOT_CONFIGURED` en production ; le webhook simulé n'est actif qu'en démo.
+4. Paiement réel non branché : `/api/checkout` renvoie `501 PAYMENT_NOT_CONFIGURED` en production ; le webhook simulé n'est actif qu'en démo (le mode local est en démo).
 5. `ANTHROPIC_API_KEY` absente → générateur local déterministe.
 6. Rate limiting / captcha applicatifs, SMTP + `mailer_autoconfirm=false`, relecture juridique des CGU, nettoyage éventuel du compte de test.
 
@@ -200,4 +206,26 @@ Choix utilisateur : **GNF + $ affichés ensemble**, FCFA supprimé, conversion a
 | Supabase | migration `20261109222655 nimba_currency_gnf_usd` appliquée ; `payments.amount_gnf`, `confirm_payment(p_amount_gnf)`, `service_role` seul autorisé |
 | SQL transactionnel live (avec `rollback`) | `confirm_payment('smoke_gnf_rollback_2', …, 1, 225000)` → `first_call=true`, `second_call=false`, `status=paid`, `amount_gnf=225000`. Après rollback : `payments=0`, `journaux_smoke=0`, `profils=2` |
 
-**Limites** : taux et montants restent indicatifs ; aucun paiement réel n'est branché. Le commit `3e2568d` a été déployé sur Vercel (`dpl_FDJ2qEGx8JFJ5wmVizCjYQgjcLVu`, `READY` / `PROMOTED`, alias `nimba.optima-works.gn`), mais `get_domain_config` reste `misconfigured=true` (`cnames=[]`, `aValues=[]`) et `GET https://nimba.optima-works.gn/api/health` échoue encore : **aucun test HTTP public ni parcours GoTrue déployé n'a été validé**. Le script `check:currency` et le smoke E2E sont locaux, pas des tests navigateur.
+**Limites** (constat avant le passage en local, voir § 11) : taux et montants restent indicatifs ; aucun paiement réel n'est branché. Le commit `3e2568d` a été déployé sur Vercel (`dpl_FDJ2qEGx8JFJ5wmVizCjYQgjcLVu`, `READY` / `PROMOTED`, alias `nimba.optima-works.gn`), mais `get_domain_config` reste `misconfigured=true` (`cnames=[]`, `aValues=[]`) et `GET https://nimba.optima-works.gn/api/health` échoue encore : **aucun test HTTP public ni parcours GoTrue déployé n'a été validé**. Le script `check:currency` et le smoke E2E sont locaux, pas des tests navigateur.
+
+
+## 11. Passage en 100 % local avec `vercel dev --local` (2026-11-09)
+
+Demande utilisateur : **tout le projet en local sur Vercel, sans publication vers un quelconque domaine**. Réponses `ask_user` : `local_scope=vercel_dev`, `domain_fate=detach`.
+
+| Action | Résultat |
+| --- | --- |
+| Installation CLI | `vercel@65.14.0` ajouté en `devDependency`, script `dev:vercel` = `vercel dev --local --listen 0.0.0.0:3000 --yes` |
+| Démarrage | `Ready! Available at http://localhost:3000`, `next dev --port $PORT`, `.env.development.local` chargé, ressources locales `4782/4783/4784` |
+| `GET /api/health` | 200, `status=ok`, `mode=demo` |
+| 9 pages avec `Host: *.e2b.app` | toutes 200 (`/`, `/login`, `/studio`, `/admin`, `/cgu`, `/confidentialite`, `/checkout/simulate`, `/api/health`, `/api/session`) |
+| `logs/e2e-vercel-local.log` | 13 étapes OK, zéro cookie : `revenueGnf/revenueUsd=0`, site, vidéo, checkout, webhook `True`/`False`, logout, signup, `403` |
+| `npm run typecheck` / `npm run build` | 0 / 17 routes (`logs/build-vercel-local.log`) |
+| Détachement domaine | `remove_project_domain` → `success=true` ; `list_project_domains` ne contient plus que `nimba-ai-ecru.vercel.app` ; `get_domain` confirme `optima-works.gn verified=true` dans le compte |
+| `NEXT_PUBLIC_APP_URL` Vercel | `https://nimba.optima-works.gn` → `http://localhost:3000` |
+| Supabase Auth | `site_url=http://localhost:3000`, allow-list `localhost` + `127.0.0.1` uniquement |
+| Déploiements | **aucun nouveau** ; les 5 déploiements précédents restent dans l'historique Vercel |
+
+Détails bruts : `logs/vercel-local.log`, `logs/e2e-vercel-local.log`, `logs/build-vercel-local.log`.
+
+**Non fait, volontairement** : rattacher un domaine, publier un CNAME/DNS, déployer en production, ouvrir un accès public, valider GoTrue depuis un hôte externe. Le mode local reste en démo ; `ANTHROPIC_API_KEY`, SMTP, paiement réel et rate limiting restent non branchés.

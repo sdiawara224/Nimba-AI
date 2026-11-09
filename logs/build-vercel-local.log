@@ -1,0 +1,46 @@
+
+> atelier@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.29
+   - Environments: .env.production.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 7.5s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/11) ...
+   Generating static pages (2/11) 
+   Generating static pages (5/11) 
+   Generating static pages (8/11) 
+ ✓ Generating static pages (11/11)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    2.23 kB         108 kB
+├ ○ /_not-found                            995 B         104 kB
+├ ○ /admin                               2.99 kB         109 kB
+├ ƒ /api/admin                             141 B         103 kB
+├ ƒ /api/auth                              141 B         103 kB
+├ ƒ /api/checkout                          141 B         103 kB
+├ ƒ /api/generate                          141 B         103 kB
+├ ƒ /api/health                            141 B         103 kB
+├ ƒ /api/projects                          141 B         103 kB
+├ ƒ /api/session                           141 B         103 kB
+├ ƒ /api/webhook                           141 B         103 kB
+├ ○ /cgu                                   164 B         106 kB
+├ ○ /checkout/simulate                   1.93 kB         108 kB
+├ ○ /confidentialite                       164 B         106 kB
+├ ○ /icon.svg                                0 B            0 B
+├ ○ /login                               3.22 kB         109 kB
+└ ○ /studio                              7.78 kB         114 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/255-73938ce8a8eac1ad.js       46.6 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
+  └ other shared chunks (total)          1.92 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

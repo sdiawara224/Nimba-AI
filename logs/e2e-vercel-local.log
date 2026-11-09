@@ -1,0 +1,28 @@
+[22:49:38] === Nimba Atelier — smoke E2E (aperçu local, mode démo) ===
+[22:49:38] Opener SANS cookie jar : le parcours admin ne utilise que le jeton Bearer.
+[22:49:39] 1) POST /api/auth test-admin -> HTTP 200
+[22:49:39]    sessionToken = 8af60040… | user.credits = 999
+[22:49:39] 2) GET /api/session (Bearer seul) -> HTTP 200
+[22:49:39]    session.credits = 999 | isAdmin = True
+[22:49:39] 3) GET /api/admin (Bearer seul) -> HTTP 200
+[22:49:39]    mode=demo stats={'users': 1, 'projects': 0, 'credits': 999, 'paidPayments': 0, 'revenueGnf': 0, 'revenueUsd': 0}
+[22:49:40] 4) POST /api/generate site -> HTTP 200
+[22:49:40]    credits=998 engine=atelier-local html=13528 caractères
+[22:49:40] 5) POST /api/generate video -> HTTP 200
+[22:49:40]    credits=997 scenes=5 html=12208 caractères
+[22:49:40] 6) GET /api/projects -> HTTP 200
+[22:49:40]    kinds=['video', 'site']
+[22:49:40] 7) POST /api/checkout createur -> HTTP 200
+[22:49:40]    reference=nimba_f7fbe5a59426492da022ffca51b0fcdd
+[22:49:40] 8) POST /api/webhook (1er appel) -> HTTP 200
+[22:49:40]    applied=True
+[22:49:40] 9) POST /api/webhook (rejoué) -> HTTP 200
+[22:49:40]    applied=False
+[22:49:40] 10) POST /api/auth logout -> HTTP 200
+[22:49:40] 11) GET /api/session (jeton révoqué) -> HTTP 200
+[22:49:40]    session après logout = None
+[22:49:40] 12) POST /api/auth signup (avec cookies) -> HTTP 200
+[22:49:40]    user.credits=3 | cookies=1
+[22:49:40] 13) GET /api/admin (utilisateur normal) -> HTTP 403
+[22:49:40]    refus attendu = Accès réservé aux administrateurs.
+[22:49:40] === FIN ===

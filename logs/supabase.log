@@ -1,0 +1,42 @@
+# Supabase — projet Nimba AI jyyqgymkxfqirgzeyjcw
+# Source : connecteur Supabase, relevé effectué pendant la collecte des logs.
+
+## Santé
+auth  healthy=true  status=ACTIVE_HEALTHY  GoTrue v2.197.0
+db    healthy=true  status=ACTIVE_HEALTHY
+rest  healthy=true  status=ACTIVE_HEALTHY  db_schema=public,graphql_public
+
+## Migrations appliquées
+20261106130046  nimba_initial_schema
+20261109152415  nimba_admin_grant_credits
+
+## Objets SQL (requête de contrôle)
+tables_nimba=4       (profiles, credit_transactions, projects, payments)
+policies=4           (RLS lecture seule par auth.uid())
+fonctions_public=6   (confirm_payment, consume_credit, grant_credits, handle_new_user, refund_credit, touch_updated_at)
+triggers :
+  auth.users       -> on_auth_user_created
+  public.projects  -> projects_touch_updated_at
+
+## Auth (extrait)
+site_url            = https://nimba.optima-works.gn
+uri_allow_list      = https://nimba.optima-works.gn/**,https://nimba-ai-sdiawara.vercel.app/**,https://nimba-ai-git-arena-f0ba93da-nimba-ai-sdiawara.vercel.app/**,https://*.vercel.app/**,http://localhost:3000/**
+jwt_exp             = 3600
+disable_signup      = false
+external_email_enabled = true
+external_phone_enabled = false
+mailer_autoconfirm  = true   (SMTP non configuré → reste à durcir)
+refresh_token_rotation_enabled = true
+security_refresh_token_reuse_interval = 10
+security_captcha_enabled = false
+
+## Smoke SQL historique (déjà validé, utilisateur de test supprimé ensuite)
+signup -> 3 crédits
+consume_credit -> 2
+refund_credit -> 3
+paiement smoke_nimba_1 : webhook appliqué=true puis rejoué=false → 43 crédits
+4 écritures de journal, tables nettoyées.
+
+## Compte admin de test (métadonnées, sans mot de passe)
+admin.test@nimba.ai / UUID 22222222-2222-2222-2222-222222222222
+raw_app_meta_data.nimba_admin=true, e-mail confirmé, profil 999 crédits.

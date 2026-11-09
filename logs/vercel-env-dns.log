@@ -1,0 +1,39 @@
+# Vercel — variables d'environnement et domaine (relevé connecteur)
+
+## Projet
+id       = prj_DDNnqcyLum6KJ5CzoFeaHTxzWt0p
+name     = nimba-ai
+team     = team_rNftP3gJ7YJxA9TvfO5OVP1G (Sdiawara)
+framework= nextjs, nodeVersion=26.x, region=iad1
+ssoProtection.deploymentType = all_except_custom_domains
+
+## Variables déclarées (valeurs non reproduites)
+NEXT_PUBLIC_APP_URL            plain      = https://nimba.optima-works.gn
+NIMBA_MODE                     encrypted  (production)
+NEXT_PUBLIC_SUPABASE_URL       encrypted
+NEXT_PUBLIC_SUPABASE_ANON_KEY  encrypted
+SUPABASE_SERVICE_ROLE_KEY      encrypted
+ANTHROPIC_MODEL                encrypted
+ANTHROPIC_MAX_TOKENS           encrypted
+ANTHROPIC_API_KEY              ABSENTE
+PAYMENT_WEBHOOK_SECRET         ABSENT
+(prestataire de paiement non branché → /api/checkout 501 en production)
+
+## Domaines du projet
+nimba.optima-works.gn                     (personnalisé, vérifié=true)
+nimba-ai-ecru.vercel.app
+nimba-ai-sdiawara.vercel.app              (URL de production Vercel, protégée SSO)
+nimba-ai-git-arena-f0ba93da-nimba-ai-sdiawara.vercel.app
+
+## get_domain_config("nimba.optima-works.gn")
+misconfigured = true
+nameservers   = fork.sth.dnsnode.net, ns-pch.gn, ns1.gn, ns-gn.afrinic.net
+serviceType   = external
+cnames        = []
+aValues       = []
+recommendedCNAME[1] = d13183f263158da0.vercel-dns-017.com.
+recommendedCNAME[2] = cname.vercel-dns.com.
+recommendedIPv4[1]  = 216.198.79.1, 64.29.17.1
+recommendedIPv4[2]  = 76.76.21.21
+
+=> Action restante : publier le CNAME chez le registrar.

@@ -1,0 +1,39 @@
+# Aperçu local — npm run dev sur 0.0.0.0:3000 (process nimba-atelier-368fbc86)
+# Extrait du log au moment de la collecte des tests.
+
+GET /api/session 200 in 14ms
+POST /api/auth 200 in 10ms
+GET /api/session 200 in 11ms
+GET /api/admin 403 in 13ms
+GET /api/health 200 in 15ms
+GET / 200 in 2794ms
+GET /api/session 200 in 15ms
+GET / 200 in 453ms
+GET /api/session 200 in 12ms
+GET /login 200 in 37ms
+POST /api/auth 200 in 14ms
+GET /api/session 200 in 11ms
+GET /api/session 200 in 130ms
+POST /api/auth 409 in 15ms
+POST /api/auth 200 in 15ms
+GET /api/session 200 in 11ms
+GET /api/session 200 in 19ms
+POST /api/auth 200 in 16ms
+GET /api/session 200 in 14ms
+GET /api/session 200 in 14ms
+GET /cgu 200 in 64ms
+GET /login 200 in 33ms
+POST /api/auth 200 in 13ms
+GET /api/session 200 in 13ms
+GET /api/session 200 in 18ms
+POST /api/auth 200 in 16ms
+GET /api/session 200 in 14ms
+GET /api/session 200 in 12ms
+GET /api/session 200 in 12ms
+GET / 200 in 285ms
+GET /api/health 200 in 359ms
+
+# Contrôles ponctuels
+GET / -> 200
+GET /api/health -> {"status":"ok","mode":"demo","supabase":{"configured":false,"missing":[]},"anthropic":{"enabled":false},"payments":{"configured":true,"adapterRequired":false},"timestamp":"2026-11-09T22:02:24.306Z"}
+npm run typecheck -> exit 0 (aucune erreur TypeScript)

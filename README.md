@@ -76,12 +76,12 @@ Un projet **dédié** a été créé ; le projet existant `Gestion Optima` (kolo
 | `mailer_autoconfirm` | `true` — aucun SMTP n'est configuré ; **à repasser à `false`** après branchement d'un SMTP et activation de la confirmation d'e-mail |
 | `jwt_exp` | `3600` s |
 | rotation du refresh token | activée, intervalle de réutilisation `10` s |
-| `site_url` | `http://localhost:3000` — **à remplacer par l'URL de production** |
-| `uri_allow_list` | `http://localhost:3000/**,https://*.vercel.app/**` — **à remplacer par le domaine exact** |
+| `site_url` | `https://nimba-ai-sdiawara.vercel.app` (production Vercel) |
+| `uri_allow_list` | `https://nimba-ai-sdiawara.vercel.app/**,https://nimba-ai-git-arena-f0ba93da-nimba-ai-sdiawara.vercel.app/**,https://*.vercel.app/**,http://localhost:3000/**` |
 
 ### Variables de l'application
 
-`.env.production.local` (ignoré par Git, chargé par `next build` / `next start`, **pas** par `next dev`) contient `NIMBA_MODE=production`, l'URL du projet, les deux clés et les emplacements `ANTHROPIC_API_KEY` / `PAYMENT_WEBHOOK_SECRET`. Sur Vercel (ou tout autre hébergeur), déclarer : `NIMBA_MODE`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL`, puis selon les besoins `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_MAX_TOKENS`, `PAYMENT_WEBHOOK_SECRET` et les clés du prestataire de paiement.
+`.env.production.local` (ignoré par Git, chargé par `next build` / `next start`, **pas** par `next dev`) contient `NIMBA_MODE=production`, l'URL du projet, les deux clés et les emplacements `ANTHROPIC_API_KEY` / `PAYMENT_WEBHOOK_SECRET`. Ces variables sont **déjà déclarées sur le projet Vercel** (voir [Déploiement Vercel](#déploiement-vercel)) : `NIMBA_MODE`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL`, `ANTHROPIC_MODEL`, `ANTHROPIC_MAX_TOKENS`. Il reste à renseigner `ANTHROPIC_API_KEY`, `PAYMENT_WEBHOOK_SECRET` et les clés du prestataire de paiement.
 
 > Les clés renseignées sont les clés JWT « legacy » `anon` / `service_role` fournies à la création du projet, compatibles avec la version installée de `@supabase/supabase-js`. La clé `sb_secret_…` est masquée par l'API de gestion : la récupérer dans le dashboard pour l'utiliser à la place.
 
@@ -96,9 +96,23 @@ Un projet **dédié** a été créé ; le projet existant `Gestion Optima` (kolo
 
 - **Paiement réel** : en production, aucun adaptateur n'est enregistré et `/api/checkout` renvoie **HTTP 501 `PAYMENT_NOT_CONFIGURED`**. Il faut implémenter `createPayment` / `verifyWebhook` dans `src/lib/payments.ts` (Mobile Money, Wave, Orange Money, cartes…), vérifier la signature du webhook avec `PAYMENT_WEBHOOK_SECRET` et renvoyer la référence créée par `/api/checkout`. Tant que ce n'est pas fait, la recharge est indisponible en production — les 3 crédits offerts fonctionnent.
 - **`ANTHROPIC_API_KEY`** : absente → générateur local déterministe, fonctionnel mais sans IA.
-- **URL de production** : mettre à jour `NEXT_PUBLIC_APP_URL`, `site_url` et `uri_allow_list` après déploiement, puis déployer (`npm run typecheck && npm run build`).
-- **Limite de ce sandbox** : l'environnement de développement ne peut pas joindre `*.supabase.co`. L'inscription/connexion réelles n'ont donc pas pu être exercées depuis l'aperçu local ; elles ont été validées au niveau SQL via le connecteur Supabase. L'aperçu (`next dev`) reste volontairement en **mode démo**, `.env.production.local` n'étant pas chargé en développement. Premier contrôle après déploiement : `GET /api/health` doit renvoyer `{"status":"ok","mode":"production"}`, puis tester inscription → génération → historique.
+- **Accès public** : le projet Vercel applique par défaut la protection « Vercel Authentication » (`ssoProtection: all_except_custom_domains`). Tant qu'elle est active, l'URL `*.vercel.app` renvoie une page de connexion Vercel ; la désactiver dans *Project Settings → Deployment Protection* ou attacher un domaine personnalisé (les domaines personnalisés ne sont pas soumis à cette protection). Le connecteur Vercel disponible ici ne permet pas de modifier ce réglage.
+- **Limite de ce sandbox** : l'environnement de développement ne peut pas joindre `*.supabase.co`, ni l'URL Vercel protégée. L'inscription/connexion réelles n'ont donc pas pu être exercées depuis l'aperçu local ; elles ont été validées au niveau SQL via le connecteur Supabase. L'aperçu (`next dev`) reste volontairement en **mode démo**, `.env.production.local` n'étant pas chargé en développement. Premier contrôle après ouverture du site : `GET /api/health` doit renvoyer `{"status":"ok","mode":"production"}`, puis tester inscription → génération → historique.
 
+## Déploiement Vercel
+
+| Élément | Valeur |
+| --- | --- |
+| Projet | `nimba-ai` — `prj_DDNnqcyLum6KJ5CzoFeaHTxzWt0p` |
+| Équipe | `Sdiawara` — `team_rNftP3gJ7YJxA9TvfO5OVP1G` |
+| URL de production | `https://nimba-ai-sdiawara.vercel.app` |
+| Déploiement promu | `dpl_5xP1rw7MmK2CKL5jZ4PRZHRkNUwN` (commit `d7c8923`, branche `arena/f0ba93da-nimba-ai`, `READY` / `PROMOTED`) |
+| Framework / Node | Next.js 15 · Node 26.x |
+| Cible | `production`, région `iad1` |
+
+Le dépôt GitHub `sdiawara224/Nimba-AI` est relié au projet ; la branche de la session a été commitée et poussée, puis déployée via le connecteur Vercel. `NEXT_PUBLIC_APP_URL`, `site_url` et `uri_allow_list` Supabase pointent désormais sur cette URL. Les clés sont stockées chiffrées dans les variables d'environnement Vercel, jamais dans Git.
+
+> **Important** : la protection Vercel SSO est active sur `*.vercel.app` et le connecteur ne permet pas de la désactiver. Pour rendre le site accessible à tous, désactiver *Vercel Authentication* dans le dashboard ou attacher un domaine personnalisé vérifié. Aucun test HTTP public (ni GoTrue réel) n'a donc été enregistré depuis l'extérieur après le déploiement.
 
 ## Compte de test
 
@@ -190,8 +204,8 @@ TEST_ACCESS.local.md          identifiants de test (ignoré par Git, non version
 - **Faire relire les pages légales par un conseil juridique** : voir les points de vigilance ci-dessous.
 - Pour un vrai export MP4, brancher un service de rendu derrière une interface du même type que `src/lib/payments.ts` ; l'architecture du storyboard est déjà prête.
 - Supprimer le compte de test et les fichiers de credentials locaux (voir ci-dessus), ou durcir `/admin` avant de le conserver.
-- Configurer un SMTP Supabase, désactiver `mailer_autoconfirm` et resserrer `site_url` / `uri_allow_list` sur le domaine de production.
-- Déclarer les variables d'environnement sur l'hébergeur et vérifier `GET /api/health` après déploiement.
+- Configurer un SMTP Supabase et désactiver `mailer_autoconfirm` (`site_url` / `uri_allow_list` sont déjà alignés sur l'URL Vercel).
+- Désactiver la protection Vercel SSO ou attacher un domaine personnalisé, puis vérifier `GET /api/health` depuis l'extérieur.
 - Brancher les clés Anthropic et le prestataire de paiement (voir ci-dessus), puis rejouer un parcours complet sur le domaine public.
 - Activer une protection anti-abus (captcha Supabase sur l'inscription + rate limiting distribué).
 - Exécutez `npm run typecheck` et `npm run build` avant chaque déploiement.

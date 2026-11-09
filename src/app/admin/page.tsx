@@ -22,7 +22,8 @@ interface Overview {
     projects: number;
     credits: number;
     paidPayments: number;
-    revenueFcfa: number;
+    revenueGnf: number;
+    revenueUsd: number;
   };
 }
 
@@ -152,7 +153,7 @@ export default function AdminPage() {
           <div className="admin-stat"><span>Projets</span><strong>{stats?.projects ?? '—'}</strong></div>
           <div className="admin-stat"><span>Crédits en circulation</span><strong>{stats?.credits ?? '—'}</strong></div>
           <div className="admin-stat"><span>Paiements confirmés</span><strong>{stats?.paidPayments ?? '—'}</strong></div>
-          <div className="admin-stat"><span>Total simulé</span><strong>{(stats?.revenueFcfa ?? 0).toLocaleString('fr-FR')} F</strong></div>
+          <div className="admin-stat"><span>Total simulé</span><strong>{(stats?.revenueGnf ?? 0).toLocaleString('fr-FR')} GNF · {(stats?.revenueUsd ?? 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $</strong></div>
         </div>
 
         <div className="admin-table-wrap">

@@ -1,6 +1,6 @@
 # Nimba — Atelier IA
 
-SaaS de génération de **sites web et de montages vidéo** par IA. Interface type Arena (zone de prompt, cartes de départ, historique, aperçu live dans un iframe sandboxé) et landing type GeniusCrea (crédits, tarifs en **FCFA**).
+SaaS de génération de **sites web et de montages vidéo** par IA. Interface type Arena (zone de prompt, cartes de départ, historique, aperçu live dans un iframe sandboxé) et landing type GeniusCrea (crédits, tarifs en **GNF / $**).
 
 > Décrivez votre idée en français → Nimba **build** un site HTML complet ou **monte** une vidéo (storyboard + aperçu animé) → affinez par messages successifs → exportez le code.
 
@@ -126,6 +126,30 @@ Le dépôt GitHub `sdiawara224/Nimba-AI` est relié au projet ; la branche de la
 
 > **Important** : la protection Vercel SSO reste active sur `*.vercel.app` et le connecteur ne permet pas de la désactiver. Le domaine personnalisé `nimba.optima-works.gn` contourne cette protection, mais son CNAME DNS n'est pas encore publié. Aucun test HTTP public (ni GoTrue réel) n'a donc été enregistré depuis l'extérieur après le déploiement.
 
+## Devise et tarifs
+
+Les prix sont affichés **en GNF avec l'équivalent $ à côté** (`75 000 GNF · 8,67 $`). Le FCFA a été retiré de l'interface, des API et du schéma.
+
+| Pack | Crédits | Ancien prix | Nouveau prix |
+| --- | --- | --- | --- |
+| Découverte | 10 | 5 000 FCFA | `75 000 GNF · 8,67 $` |
+| Créateur | 40 | 15 000 FCFA | `225 000 GNF · 26,01 $` |
+| Studio | 120 | 35 000 FCFA | `525 000 GNF · 60,69 $` |
+
+Conversion **indicative** (non bancaire) définie dans `src/lib/plans.ts` :
+
+```text
+1 $ ≈ 575 FCFA
+1 $ ≈ 8 650 GNF
+→ 1 FCFA ≈ 15,04 GNF
+```
+
+Les anciens montants FCFA ont été convertis puis arrondis au multiple de 5 000 GNF. `GNF_PER_USD` sert à calculer l'équivalent `$` (`formatUsd`) et le total admin. La colonne Supabase `payments.amount_gnf`, le paramètre `confirm_payment(p_amount_gnf)` et les champs `amountGnf` / `revenueGnf` / `revenueUsd` ont été renommés en conséquence (migration `20261109222655 nimba_currency_gnf_usd`).
+
+Migration SQL reproductible : `supabase/migrations/20261109222655_nimba_currency_gnf_usd.sql`. Vérification locale : `npm run check:currency` (prix, équivalents `$`, absence de FCFA dans l'UI et le schéma).
+
+> **Avant mise en ligne** : remplacer ce taux indicatif et ces montants arrondis par les prix contractuels validés avec le prestataire de paiement.
+
 ## Compte de test
 
 Un compte de test **avec mot de passe** est disponible, avec les **mêmes identifiants** dans l'aperçu démo et dans le projet Supabase « Nimba AI » :
@@ -143,7 +167,7 @@ Un compte de test **avec mot de passe** est disponible, avec les **mêmes identi
 
 ### Rôle administrateur et back-office `/admin`
 
-Ce compte porte un **vrai rôle admin** (`isAdmin` dans la session) et donne accès à `/admin` : statistiques globales (comptes, projets, crédits, paiements confirmés, total FCFA), liste de tous les utilisateurs et **octroi manuel de +10 crédits** par compte. Un lien « ⚙ Admin » apparaît dans l'en-tête.
+Ce compte porte un **vrai rôle admin** (`isAdmin` dans la session) et donne accès à `/admin` : statistiques globales (comptes, projets, crédits, paiements confirmés, total GNF / $), liste de tous les utilisateurs et **octroi manuel de +10 crédits** par compte. Un lien « ⚙ Admin » apparaît dans l'en-tête.
 
 | Environnement | Origine du rôle | Écriture des crédits |
 | --- | --- | --- |
@@ -187,7 +211,7 @@ Parcours vérifié **avec zéro cookie** : connexion → `/api/session` (999 cr�
 
 ```
 src/app/
-  page.tsx                    landing (fonctionnement, fonctionnalités, tarifs FCFA, FAQ)
+  page.tsx                    landing (fonctionnement, fonctionnalités, tarifs GNF / $, FAQ)
   login/page.tsx              inscription / connexion / accès démo
   studio/page.tsx             atelier : prompt, cartes, historique, aperçu, export
   checkout/simulate/page.tsx  paiement simulé (mode démo uniquement)
@@ -211,7 +235,7 @@ TEST_ACCESS.local.md          identifiants de test (ignoré par Git, non version
 ## À finir avant la mise en ligne
 
 - **Paiement** : implémenter `createPayment` et `verifyWebhook` dans `src/lib/payments.ts` pour votre prestataire (Mobile Money / Orange Money / Wave / cartes), puis appeler `registerPaymentProvider(...)` au démarrage du serveur. **Sans cela, l'achat renvoie une erreur explicite (HTTP 501)** au lieu de créditer gratuitement. L'adaptateur doit vérifier la signature du webhook et renvoyer la référence créée par `/api/checkout`.
-- Ajuster prix et crédits dans `src/lib/plans.ts`.
+- Ajuster prix et crédits dans `src/lib/plans.ts`, et remplacer le taux indicatif `1 $ ≈ 8 650 GNF` par les montants contractuels.
 - Ajouter une limitation de débit (rate limiting) sur `/api/generate`, `/api/auth` et `/api/admin` ; journaliser les actions d'administration.
 - **Faire relire les pages légales par un conseil juridique** : voir les points de vigilance ci-dessous.
 - Pour un vrai export MP4, brancher un service de rendu derrière une interface du même type que `src/lib/payments.ts` ; l'architecture du storyboard est déjà prête.
@@ -235,7 +259,7 @@ Le texte des CGU décrit un produit et un modèle économique plus larges que ce
 | Sujet | Dans les CGU | Dans l'application |
 | --- | --- | --- |
 | Objet du service | angles publicitaires, scripts 9:16, copies Meta/TikTok/Google, calendrier, prompts visuels multi-formats | 2 ateliers : build de sites HTML et montage vidéo storyboardé |
-| Offres | Free 3 crédits, Starter 20/mois et Pro 60/mois (**abonnements**), Recharge 5 crédits | 3 packs à achat unique en FCFA, sans abonnement |
+| Offres | Free 3 crédits, Starter 20/mois et Pro 60/mois (**abonnements**), Recharge 5 crédits | 3 packs à achat unique en GNF / $, sans abonnement |
 | Parrainage | 2 crédits au filleul, 20 % au parrain | non implémenté |
 | Éditeur / propriété / droit | Optima Works (Conakry) / MonWe Infinity LLC / droit du Nouveau-Mexique | incohérences à trancher par l'éditeur |
 | Responsabilité publicitaire | champs `[crochets]`, pas de chiffres inventés | règle non appliquée aux générateurs actuels |
@@ -252,3 +276,4 @@ Refonte visuelle inspirée des références fournies : thème nuit GeniusCrea (m
 | `npm run build` | Build de production (vérifie aussi les types) |
 | `npm start` | Serveur de production |
 | `npm run typecheck` | `tsc --noEmit` seul |
+| `npm run check:currency` | Vérifie les 3 prix GNF / $, le taux indicatif et l'absence de FCFA dans l'UI et le schéma |

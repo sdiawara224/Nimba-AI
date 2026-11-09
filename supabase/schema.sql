@@ -56,7 +56,7 @@ create table if not exists public.payments (
   user_id uuid not null references auth.users (id) on delete cascade,
   plan_id text not null,
   credits integer not null check (credits > 0),
-  amount_fcfa integer not null check (amount_fcfa >= 0),
+  amount_gnf integer not null check (amount_gnf >= 0),
   status text not null default 'pending'
     check (status in ('pending', 'paid', 'failed', 'refunded')),
   provider text,
@@ -203,7 +203,7 @@ create or replace function public.confirm_payment(
   p_reference text,
   p_user_id uuid,
   p_credits integer,
-  p_amount_fcfa integer
+  p_amount_gnf integer
 )
 returns boolean
 language plpgsql
@@ -219,7 +219,7 @@ begin
      set status = 'paid',
          confirmed_at = now(),
          credits = p_credits,
-         amount_fcfa = p_amount_fcfa
+         amount_gnf = p_amount_gnf
    where reference = p_reference
      and user_id = p_user_id
      and status = 'pending'

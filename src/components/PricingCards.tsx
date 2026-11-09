@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PLANS, formatFcfa, type Plan } from '@/lib/plans';
+import { PLANS, formatPrice, type Plan } from '@/lib/plans';
 import { useApp } from './SessionContext';
 
 interface Intent {
@@ -60,7 +60,7 @@ export function PricingCards() {
             <h3 className="plan-name">{plan.name}</h3>
             <p className="plan-tagline">{plan.tagline}</p>
             <div className="plan-price">
-              {formatFcfa(plan.priceFcfa)} <small>/ paiement unique</small>
+              {formatPrice(plan.priceGnf)} <small>/ paiement unique</small>
             </div>
             <div className="plan-credits">✦ {plan.credits} crédits · sans abonnement</div>
             <ul className="plan-features">

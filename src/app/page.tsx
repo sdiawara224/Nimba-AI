@@ -41,7 +41,7 @@ const START_CARDS = [
 const FAQ = [
   {
     q: 'Combien coûte une génération ?',
-    a: 'Un crédit par génération ou modification. L’inscription offre 3 crédits, et les packs démarrent à 5 000 FCFA pour 10 crédits. Aucun abonnement.',
+    a: 'Un crédit par génération ou modification. L’inscription offre 3 crédits, et les packs démarrent à 75 000 GNF (≈ 8,67 $) pour 10 crédits. Aucun abonnement.',
   },
   {
     q: 'Que se passe-t-il si la génération échoue ?',
@@ -128,7 +128,7 @@ export default function HomePage() {
             <div><strong className="gradient-text">2</strong> <span className="muted">ateliers</span></div>
             <div><strong className="gradient-text">1 crédit</strong> <span className="muted">/ génération</span></div>
             <div><strong className="gradient-text">100 %</strong> <span className="muted">HTML autonome</span></div>
-            <div><strong className="gradient-text">FCFA</strong> <span className="muted">prix locaux</span></div>
+            <div><strong className="gradient-text">GNF / $</strong> <span className="muted">prix locaux</span></div>
             <div><strong className="gradient-text">0</strong> <span className="muted">abonnement</span></div>
           </div>
         </div>
@@ -236,11 +236,14 @@ export default function HomePage() {
         <div className="section-head">
           <span className="eyebrow">Tarifs</span>
           <h2 className="section-title">Payez ce que vous créez.</h2>
-          <p>Des crédits à l’unité, en FCFA, sans engagement. Un crédit = une génération ou une modification.</p>
+          <p>Des crédits à l’unité, en GNF avec équivalent $, sans engagement. Un crédit = une génération ou une modification.</p>
         </div>
         <PricingCards />
         <p className="muted" style={{ fontSize: '0.82rem', marginTop: 18 }}>
           Les crédits n’expirent pas. Le paiement est validé côté serveur et les crédits ne sont ajoutés qu’une seule fois par commande.
+        </p>
+        <p className="muted" style={{ fontSize: '0.82rem', marginTop: 8 }}>
+          Taux indicatif : 1 $ ≈ 8 650 GNF. Montants GNF arrondis, à remplacer par les prix contractuels avant mise en ligne.
         </p>
       </section>
 

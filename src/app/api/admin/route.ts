@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isDemoMode } from '@/lib/env';
+import { GNF_PER_USD } from '@/lib/plans';
 import { getSession, type Session } from '@/lib/session';
 import { adminClient } from '@/lib/supabase';
 
@@ -23,7 +24,8 @@ interface Overview {
     projects: number;
     credits: number;
     paidPayments: number;
-    revenueFcfa: number;
+    revenueGnf: number;
+    revenueUsd: number;
   };
 }
 
@@ -58,7 +60,8 @@ async function buildOverview(session: Session): Promise<Overview> {
         projects: users.reduce((n, u) => n + u.projects, 0),
         credits: users.reduce((n, u) => n + u.credits, 0),
         paidPayments: paid.length,
-        revenueFcfa: paid.reduce((n, p) => n + p.amountFcfa, 0),
+        revenueGnf: paid.reduce((n, p) => n + Number(p.amountGnf ?? 0), 0),
+        revenueUsd: Math.round((paid.reduce((n, p) => n + Number(p.amountGnf ?? 0), 0) / GNF_PER_USD) * 100) / 100,
       },
     };
   }
@@ -71,7 +74,7 @@ async function buildOverview(session: Session): Promise<Overview> {
   if (error) throw new Error(error.message);
 
   const { data: projectRows } = await admin.from('projects').select('user_id');
-  const { data: paymentRows } = await admin.from('payments').select('status, amount_fcfa');
+  const { data: paymentRows } = await admin.from('payments').select('status, amount_gnf');
   const counts = new Map<string, number>();
   for (const row of projectRows ?? []) {
     const key = String(row.user_id);
@@ -96,7 +99,8 @@ async function buildOverview(session: Session): Promise<Overview> {
       projects: users.reduce((n, u) => n + u.projects, 0),
       credits: users.reduce((n, u) => n + u.credits, 0),
       paidPayments: paid.length,
-      revenueFcfa: paid.reduce((n, p) => n + Number(p.amount_fcfa ?? 0), 0),
+      revenueGnf: paid.reduce((n, p) => n + Number(p.amount_gnf ?? 0), 0),
+      revenueUsd: Math.round((paid.reduce((n, p) => n + Number(p.amount_gnf ?? 0), 0) / GNF_PER_USD) * 100) / 100,
     },
   };
 }

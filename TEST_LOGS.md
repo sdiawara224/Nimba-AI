@@ -14,6 +14,7 @@ Collecte des logs de validation de la session. **Aucun mot de passe, JWT, clé `
 | Supabase | `ACTIVE_HEALTHY`, 2 migrations, 4 tables, 4 politiques, 6 fonctions, 2 triggers | `logs/supabase.log` |
 | Domaine | attaché + vérifié côté Vercel, **CNAME DNS encore absent** | `logs/vercel-env-dns.log` |
 | HTTP public déployé | **non validé** (SSO Vercel + DNS en attente) | voir § 8 |
+| Devise GNF / $ | `check:currency`, typecheck, build et E2E OK ; migration SQL appliquée | `logs/build-gnf-usd.log`, `logs/e2e-gnf-usd.log`, § 10 |
 
 ## 2. Fichiers bruts
 
@@ -28,6 +29,8 @@ Collecte des logs de validation de la session. **Aucun mot de passe, JWT, clé `
 | `logs/build-admin.log` / `build-cookies.log` / `build-final.log` | Builds intermédiaires |
 | `logs/prod-token.log` / `prod-admin.log` / `prod-cookies.log` / `prod.log` / `prod3.log` | Démarrages `next start -p 3100` en mode production |
 | `logs/prod2.log` | Erreur historique `ENOENT prerender-manifest.json` (build écrasé par le dev, corrigé depuis) |
+| `logs/build-gnf-usd.log` | Build local après le passage en GNF / $ |
+| `logs/e2e-gnf-usd.log` | Smoke E2E après le passage en GNF / $ (zéro cookie, 22:28 UTC) |
 
 ## 3. Builds locaux
 
@@ -59,7 +62,7 @@ Linting and checking validity of types ...
 | --- | --- | --- | --- |
 | 1 | `POST /api/auth` `test-admin` | 200 | `sessionToken=7dffecca…`, `credits=997` |
 | 2 | `GET /api/session` Bearer seul | 200 | `credits=997`, `isAdmin=True` |
-| 3 | `GET /api/admin` Bearer seul | 200 | `mode=demo`, `stats={users:3, projects:2, credits:1003, paidPayments:0, revenueFcfa:0}` |
+| 3 | `GET /api/admin` Bearer seul | 200 | `mode=demo`, `stats={users:3, projects:2, credits:1003, paidPayments:0, revenueFcfa:0}` *(ancien nom avant renommage GNF)* |
 | 4 | `POST /api/generate` site | 200 | `credits=996`, `engine=atelier-local`, HTML 13 528 caractères |
 | 5 | `POST /api/generate` vidéo | 200 | `credits=995`, 5 scènes, HTML 12 208 caractères |
 | 6 | `GET /api/projects` | 200 | `['video','site','video','site']` |
@@ -108,7 +111,7 @@ Contrôles bundle : absence du préfixe du mot de passe de test, du mot de passe
 | --- | --- |
 | `/api/admin` anonyme | 401 |
 | `/api/admin` utilisateur normal | 403 |
-| `/api/admin` admin | 200, `mode=demo`, stats `users=5, projects=1, credits=1010, paidPayments=0, revenueFcfa=0` |
+| `/api/admin` admin | 200, `mode=demo`, stats `users=5, projects=1, credits=1010, paidPayments=0, revenueFcfa=0` *(ancien nom)* |
 | `grant_credits` montant 0 | 400 |
 | `grant_credits` utilisateur inconnu | 404 |
 | `grant_credits +10` | 200, cible 3 → 13 |
@@ -161,6 +164,7 @@ Voir `logs/supabase.log` et `logs/vercel-env-dns.log` :
 - `mailer_autoconfirm = true`, SMTP non configuré, captcha désactivé.
 - `nimba.optima-works.gn` : `verified=true` côté Vercel mais `misconfigured=true` côté DNS.
 - CNAME à publier : `nimba → d13183f263158da0.vercel-dns-017.com.`
+- Migration `20261109222655 nimba_currency_gnf_usd` : `payments.amount_fcfa → amount_gnf`, `confirm_payment(p_amount_fcfa → p_amount_gnf)`. Requête de contrôle : colonne `amount_gnf`, signature `confirm_payment(p_reference text, p_user_id uuid, p_credits integer, p_amount_gnf integer)`, `EXECUTE` réservé à `service_role`.
 
 **Non validé / restant** :
 
@@ -178,3 +182,20 @@ Voir `logs/supabase.log` et `logs/vercel-env-dns.log` :
 - `SameSite=None; Secure; Partitioned` a été validé dans les en-têtes mais **le navigateur de l'utilisateur refuse quand même les cookies tiers** (`/tmp/arena-coding-uploads/image-4.png`) : d'où le fallback par jeton Bearer.
 - `VERCEL_AUTOMATION_BYPASS_SECRET` positionné manuellement puis supprimé : il n'a pas contourné le SSO Vercel.
 - Le connecteur Vercel ne permet pas de modifier `ssoProtection` ni d'écrire les enregistrements DNS.
+
+## 10. Passage en devise GNF / $ (2026-11-09)
+
+Choix utilisateur : **GNF + $ affichés ensemble**, FCFA supprimé, conversion avec `1 $ ≈ 8 650 GNF` (taux indicatif non bancaire). Anciens prix 5 000 / 15 000 / 35 000 FCFA convertis via `575 FCFA/$` puis arrondis au multiple de 5 000 GNF.
+
+| Vérification | Résultat |
+| --- | --- |
+| `npm run check:currency` | OK : `75 000 GNF · 8,67 $`, `225 000 GNF · 26,01 $`, `525 000 GNF · 60,69 $`, aucun `FCFA` dans l'UI ni `schema.sql` |
+| `npm run typecheck` | exit 0 |
+| `npm run build` (`logs/build-gnf-usd.log`) | exit 0, 17 routes (9 statiques + 8 dynamiques) |
+| `logs/e2e-gnf-usd.log` | 13 étapes OK, zéro cookie : `stats={revenueGnf:0, revenueUsd:0}`, génération site/vidéo, checkout, webhook `applied=True` puis `False`, logout/jeton révoqué, utilisateur normal `403` |
+| Relevé complémentaire | `POST /api/checkout createur` → `plan={priceGnf:225000, priceUsd:26.01}` ; après webhook 1× : `revenueGnf=…, revenueUsd=…` cohérents avec `/8650` |
+| HTML `/` | `GNF / $`, `75 000 GNF · 8,67 $`, `225 000 GNF · 26,01 $`, `525 000 GNF · 60,69 $` ; `FCFA=0` |
+| HTML `/checkout/simulate?...&amount=225000` | `formatPrice` rendu côté serveur en `0 GNF · 0,00 $` puis hydraté côté client avec le montant de l'URL ; `FCFA=0` |
+| Supabase | migration `20261109222655 nimba_currency_gnf_usd` appliquée ; `payments.amount_gnf`, `confirm_payment(p_amount_gnf)`, `service_role` seul autorisé |
+
+**Limites** : taux et montants restent indicatifs ; aucun paiement réel n'est branché ; la nouvelle version n'a pas encore été déployée sur Vercel ni testée sur le domaine public (CNAME toujours à publier). Le script `check:currency` et le smoke E2E sont locaux, pas des tests navigateur.

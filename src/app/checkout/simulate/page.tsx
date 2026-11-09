@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { formatFcfa, getPlan } from '@/lib/plans';
+import { formatPrice, getPlan } from '@/lib/plans';
 
 export default function SimulateCheckoutPage() {
   const router = useRouter();
@@ -62,7 +62,7 @@ export default function SimulateCheckoutPage() {
         <div className="checkout-row"><span>Référence</span><code style={{ fontSize: '0.76rem' }}>{params?.ref?.slice(0, 24) ?? '—'}…</code></div>
         <div className="checkout-row"><span>Moyen de paiement</span><strong>Simulation démo</strong></div>
 
-        <div className="checkout-total"><span>Total</span><span>{formatFcfa(params?.amount ?? 0)}</span></div>
+        <div className="checkout-total"><span>Total</span><span>{formatPrice(params?.amount ?? 0)}</span></div>
 
         <div className="checkout-actions">
           <button type="button" className="btn btn-secondary" disabled={busy} onClick={() => router.push('/#tarifs')}>Annuler</button>

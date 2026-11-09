@@ -36,7 +36,7 @@ export interface DemoPayment {
   userId: string;
   planId: string;
   credits: number;
-  amountFcfa: number;
+  amountGnf: number;
   status: 'pending' | 'paid' | 'failed';
   provider: string;
   createdAt: string;
@@ -216,7 +216,7 @@ export function createDemoPayment(input: {
   userId: string;
   planId: string;
   credits: number;
-  amountFcfa: number;
+  amountGnf: number;
   provider: string;
 }): DemoPayment {
   const payment: DemoPayment = { ...input, status: 'pending', createdAt: now() };

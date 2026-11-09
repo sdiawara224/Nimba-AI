@@ -19,7 +19,7 @@ export interface CreatePaymentInput {
   userId: string;
   planId: string;
   credits: number;
-  amountFcfa: number;
+  amountGnf: number;
   returnUrl: string;
 }
 
@@ -38,7 +38,7 @@ export interface VerifiedPayment {
   userId: string;
   planId: string;
   credits: number;
-  amountFcfa: number;
+  amountGnf: number;
   status: 'paid';
 }
 
@@ -75,7 +75,7 @@ const demoProvider: PaymentProvider = {
       ref: input.reference,
       plan: input.planId,
       credits: String(input.credits),
-      amount: String(input.amountFcfa),
+      amount: String(input.amountGnf),
     });
     return {
       provider: this.name,
@@ -100,7 +100,7 @@ const demoProvider: PaymentProvider = {
       userId: payment.userId,
       planId: payment.planId,
       credits: payment.credits,
-      amountFcfa: payment.amountFcfa,
+      amountGnf: Number(payment.amountGnf ?? 0),
       status: 'paid',
     };
   },

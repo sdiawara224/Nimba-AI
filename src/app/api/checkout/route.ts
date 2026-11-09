@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { appUrl } from '@/lib/env';
-import { getPlan } from '@/lib/plans';
+import { GNF_PER_USD, getPlan } from '@/lib/plans';
 import {
   PaymentNotConfiguredError,
   createPayment,
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       session,
       planId: plan.id,
       credits: plan.credits,
-      amountFcfa: plan.priceFcfa,
+      amountGnf: plan.priceGnf,
       provider: provider.name,
     });
     const intent = await createPayment({
@@ -44,10 +44,18 @@ export async function POST(request: Request) {
       userId: session.userId,
       planId: plan.id,
       credits: plan.credits,
-      amountFcfa: plan.priceFcfa,
+      amountGnf: plan.priceGnf,
       returnUrl: `${appUrl()}/studio?paiement=retour`,
     });
-    return NextResponse.json({ intent, plan: { name: plan.name, credits: plan.credits, priceFcfa: plan.priceFcfa } });
+    return NextResponse.json({
+      intent,
+      plan: {
+        name: plan.name,
+        credits: plan.credits,
+        priceGnf: plan.priceGnf,
+        priceUsd: Math.round((plan.priceGnf / GNF_PER_USD) * 100) / 100,
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue.';
     return NextResponse.json({ error: `Commande impossible : ${message}` }, { status: 502 });

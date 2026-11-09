@@ -9,6 +9,7 @@ rest  healthy=true  status=ACTIVE_HEALTHY  db_schema=public,graphql_public
 ## Migrations appliquées
 20261106130046  nimba_initial_schema
 20261109152415  nimba_admin_grant_credits
+20261109222655  nimba_currency_gnf_usd  (amount_fcfa -> amount_gnf, p_amount_gnf)
 
 ## Objets SQL (requête de contrôle)
 tables_nimba=4       (profiles, credit_transactions, projects, payments)

@@ -337,7 +337,7 @@ export async function createPendingPayment(input: {
   session: Session;
   planId: string;
   credits: number;
-  amountFcfa: number;
+  amountGnf: number;
   provider: string;
 }): Promise<void> {
   if (input.session.mode === 'demo') {
@@ -347,7 +347,7 @@ export async function createPendingPayment(input: {
       userId: input.session.userId,
       planId: input.planId,
       credits: input.credits,
-      amountFcfa: input.amountFcfa,
+      amountGnf: input.amountGnf,
       provider: input.provider,
     });
     return;
@@ -359,7 +359,7 @@ export async function createPendingPayment(input: {
     user_id: input.session.userId,
     plan_id: input.planId,
     credits: input.credits,
-    amount_fcfa: input.amountFcfa,
+    amount_gnf: input.amountGnf,
     status: 'pending',
     provider: input.provider,
   });
@@ -371,7 +371,7 @@ export async function confirmPayment(payment: {
   reference: string;
   userId: string;
   credits: number;
-  amountFcfa: number;
+  amountGnf: number;
 }): Promise<boolean> {
   if (isDemoMode()) {
     const { confirmDemoPayment } = await import('./store');
@@ -383,7 +383,7 @@ export async function confirmPayment(payment: {
     p_reference: payment.reference,
     p_user_id: payment.userId,
     p_credits: payment.credits,
-    p_amount_fcfa: payment.amountFcfa,
+    p_amount_gnf: payment.amountGnf,
   });
   return !error && data === true;
 }

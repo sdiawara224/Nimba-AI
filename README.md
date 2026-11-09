@@ -107,7 +107,7 @@ Un projet **dédié** a été créé ; le projet existant `Gestion Optima` (kolo
 | Équipe | `Sdiawara` — `team_rNftP3gJ7YJxA9TvfO5OVP1G` |
 | URL Vercel (privée SSO) | `https://nimba-ai-sdiawara.vercel.app` |
 | Domaine personnalisé | `https://nimba.optima-works.gn` — attaché et vérifié côté Vercel, **DNS à publier** |
-| Déploiement promu | voir dernier `READY` / `PROMOTED` sur le projet (branche `arena/f0ba93da-nimba-ai`) |
+| Déploiement promu | `dpl_EFi42nTY9ficxQJMXmSnDVg5dFn9` (commit `ee7a2c3`, branche `arena/f0ba93da-nimba-ai`, `READY` / `PROMOTED`, alias `nimba.optima-works.gn`) |
 | Framework / Node | Next.js 15 · Node 26.x |
 | Cible | `production`, région `iad1` |
 | `NEXT_PUBLIC_APP_URL` | `https://nimba.optima-works.gn` |
@@ -115,8 +115,9 @@ Un projet **dédié** a été créé ; le projet existant `Gestion Optima` (kolo
 Le domaine `optima-works.gn` est déjà vérifié dans le compte Vercel. `get_domain_config` signale cependant `misconfigured: true` : le sous-domaine doit être publié chez le gestionnaire DNS actuel (`fork.sth.dnsnode.net`, `ns-pch.gn`, `ns1.gn`, `ns-gn.afrinic.net`) avec l'un des CNAME recommandés par Vercel :
 
 ```text
-nimba    CNAME    cname.vercel-dns.com.
-# ou, selon la consigne Vercel : d13183f263158da0.vercel-dns-017.com.
+nimba    CNAME    d13183f263158da0.vercel-dns-017.com.
+# CNAME alternatif : cname.vercel-dns.com.
+# Si le CNAME est impossible : A vers 216.198.79.1 (ou 76.76.21.21)
 ```
 
 Tant que cet enregistrement n'est pas propagé, `https://nimba.optima-works.gn` ne résout pas ; l'URL `*.vercel.app` reste accessible aux seuls membres connectés de l'équipe Vercel.
@@ -216,7 +217,7 @@ TEST_ACCESS.local.md          identifiants de test (ignoré par Git, non version
 - Pour un vrai export MP4, brancher un service de rendu derrière une interface du même type que `src/lib/payments.ts` ; l'architecture du storyboard est déjà prête.
 - Supprimer le compte de test et les fichiers de credentials locaux (voir ci-dessus), ou durcir `/admin` avant de le conserver.
 - Configurer un SMTP Supabase et désactiver `mailer_autoconfirm` (`site_url` / `uri_allow_list` sont déjà alignés sur l'URL Vercel).
-- Publier le CNAME `nimba → cname.vercel-dns.com.` chez le registrar, puis vérifier `GET /api/health` depuis `https://nimba.optima-works.gn`.
+- Publier le CNAME `nimba → d13183f263158da0.vercel-dns-017.com.` chez le registrar, puis vérifier `GET /api/health` depuis `https://nimba.optima-works.gn`.
 - Brancher les clés Anthropic et le prestataire de paiement (voir ci-dessus), puis rejouer un parcours complet sur le domaine public.
 - Activer une protection anti-abus (captcha Supabase sur l'inscription + rate limiting distribué).
 - Exécutez `npm run typecheck` et `npm run build` avant chaque déploiement.

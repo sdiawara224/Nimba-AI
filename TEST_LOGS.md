@@ -198,5 +198,6 @@ Choix utilisateur : **GNF + $ affichés ensemble**, FCFA supprimé, conversion a
 | HTML `/` | `GNF / $`, `75 000 GNF · 8,67 $`, `225 000 GNF · 26,01 $`, `525 000 GNF · 60,69 $` ; `FCFA=0` |
 | HTML `/checkout/simulate?...&amount=225000` | `formatPrice` rendu côté serveur en `0 GNF · 0,00 $` puis hydraté côté client avec le montant de l'URL ; `FCFA=0` |
 | Supabase | migration `20261109222655 nimba_currency_gnf_usd` appliquée ; `payments.amount_gnf`, `confirm_payment(p_amount_gnf)`, `service_role` seul autorisé |
+| SQL transactionnel live (avec `rollback`) | `confirm_payment('smoke_gnf_rollback_2', …, 1, 225000)` → `first_call=true`, `second_call=false`, `status=paid`, `amount_gnf=225000`. Après rollback : `payments=0`, `journaux_smoke=0`, `profils=2` |
 
 **Limites** : taux et montants restent indicatifs ; aucun paiement réel n'est branché. Le commit `3e2568d` a été déployé sur Vercel (`dpl_FDJ2qEGx8JFJ5wmVizCjYQgjcLVu`, `READY` / `PROMOTED`, alias `nimba.optima-works.gn`), mais `get_domain_config` reste `misconfigured=true` (`cnames=[]`, `aValues=[]`) et `GET https://nimba.optima-works.gn/api/health` échoue encore : **aucun test HTTP public ni parcours GoTrue déployé n'a été validé**. Le script `check:currency` et le smoke E2E sont locaux, pas des tests navigateur.

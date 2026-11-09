@@ -10,6 +10,9 @@ rest  healthy=true  status=ACTIVE_HEALTHY  db_schema=public,graphql_public
 20261106130046  nimba_initial_schema
 20261109152415  nimba_admin_grant_credits
 20261109222655  nimba_currency_gnf_usd  (amount_fcfa -> amount_gnf, p_amount_gnf)
+controle_live    colonnes payments = reference, user_id, plan_id, credits, amount_gnf, status, provider, provider_ref, created_at, confirmed_at
+controle_live    confirm_payment(p_reference text, p_user_id uuid, p_credits integer, p_amount_gnf integer), EXECUTE service_role=true
+controle_live    smoke transactionnel (rollback) : 1er appel=true, 2e=false, amount_gnf=225000, aucun residu
 
 ## Objets SQL (requête de contrôle)
 tables_nimba=4       (profiles, credit_transactions, projects, payments)
